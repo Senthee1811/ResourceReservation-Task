@@ -8,6 +8,7 @@ export default defineConfig({
     // Integration tests share one database, so run files serially.
     fileParallelism: false,
     setupFiles: ["./tests/setup.ts"],
+    globalSetup: ["./tests/global-setup.ts"],
   },
   resolve: { alias: { "@": path.resolve(__dirname) } },
 });

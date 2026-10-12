@@ -2,13 +2,22 @@ import { z } from "zod";
 
 export const MAX_BOOKING_HOURS = 8;
 
+export const booleanCheckbox = z.preprocess((val) => {
+  if (typeof val === "boolean") return val;
+  if (typeof val === "string") {
+    const s = val.trim().toLowerCase();
+    return s === "true" || s === "on";
+  }
+  return false;
+}, z.boolean());
+
 export const resourceInputSchema = z.object({
   name: z.string().trim().min(2, "Name is too short").max(100),
   type: z.string().trim().min(2).max(50),
   capacity: z.coerce.number().int().min(1).max(10_000),
   location: z.string().trim().max(120).optional().or(z.literal("")),
   description: z.string().trim().max(500).optional().or(z.literal("")),
-  isActive: z.coerce.boolean().default(true),
+  isActive: booleanCheckbox,
 });
 export type ResourceInput = z.infer<typeof resourceInputSchema>;
 

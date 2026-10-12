@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, gt, lt, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, gt, lt, sql, type SQL } from "drizzle-orm";
 import { db } from "./db";
 import { reservations, resources, users } from "./db/schema";
 import { DomainError } from "./errors";
@@ -106,7 +106,7 @@ export type ReservationFilters = {
   order?: "asc" | "desc";
 };
 
-export async function listReservations(f: ReservationFilters = {}) {
+function buildReservationConditions(f: ReservationFilters): SQL[] {
   const conditions: SQL[] = [];
   if (f.resourceId) conditions.push(eq(reservations.resourceId, f.resourceId));
   if (f.userId) conditions.push(eq(reservations.userId, f.userId));
@@ -114,6 +114,20 @@ export async function listReservations(f: ReservationFilters = {}) {
   // Overlap-with-window semantics: reservation intersects [from, to).
   if (f.from) conditions.push(gt(reservations.endAt, f.from));
   if (f.to) conditions.push(lt(reservations.startAt, f.to));
+  return conditions;
+}
+
+export async function countReservations(f: ReservationFilters = {}): Promise<number> {
+  const conditions = buildReservationConditions(f);
+  const [row] = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(reservations)
+    .where(conditions.length ? and(...conditions) : undefined);
+  return row?.count ?? 0;
+}
+
+export async function listReservations(f: ReservationFilters = {}) {
+  const conditions = buildReservationConditions(f);
 
   return db
     .select({

@@ -4,6 +4,7 @@ import { db, pool } from "../lib/db";
 import { reservations, resources, users } from "../lib/db/schema";
 import {
   cancelReservation,
+  countReservations,
   createReservation,
   type Actor,
 } from "../lib/reservation-service";
@@ -147,3 +148,21 @@ describe("cancellation permissions", () => {
     });
   });
 });
+
+describe("countReservations", () => {
+  it("counts reservations according to filters", async () => {
+    await book(member, roomId, at(9), at(10));
+    const r2 = await book(member, roomId, at(11), at(12));
+    await cancelReservation(member, r2.id, NOW);
+
+    const total = await countReservations({ resourceId: roomId });
+    expect(total).toBe(2);
+
+    const confirmed = await countReservations({ resourceId: roomId, status: "CONFIRMED" });
+    expect(confirmed).toBe(1);
+
+    const cancelled = await countReservations({ resourceId: roomId, status: "CANCELLED" });
+    expect(cancelled).toBe(1);
+  });
+});
+
