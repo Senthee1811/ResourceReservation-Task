@@ -6,3 +6,4 @@
 - **Phase 0 (Domain Services):** Centralized resource business rules in `lib/resource-service.ts` and reservation rules in `lib/reservation-service.ts`, enforcing server-side authorization and mapping PostgreSQL `23505` to friendly conflict errors.
 - **Phase 1 (Session Strategy):** Implemented signed JWT sessions (`jose` HS256) stored in `httpOnly, SameSite=Lax, Secure-in-production` cookies, with `requireUser()` re-verifying the active user against PostgreSQL so role changes take effect immediately.
 - **Phase 1 (In-Memory Throttle Trade-off):** Implemented an in-memory 5-attempt/10-minute throttle per email for failed logins to prevent brute force while avoiding external Redis dependencies for assessment simplicity.
+- **Phase 2 (Design System):** Built a lightweight, accessible UI component kit in Tailwind CSS without third-party component libraries or calendar packages, guaranteeing zero dependency bloat and straightforward code explainability.
