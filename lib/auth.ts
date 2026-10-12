@@ -1,5 +1,5 @@
 import bcrypt from "bcryptjs";
-import { eq } from "drizzle-orm";
+import { asc, eq } from "drizzle-orm";
 import { jwtVerify, SignJWT } from "jose";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -206,3 +206,11 @@ export async function requireAdmin(): Promise<User> {
   }
   return user;
 }
+
+export async function listAllUsers() {
+  return db
+    .select({ id: users.id, name: users.name, email: users.email, role: users.role })
+    .from(users)
+    .orderBy(asc(users.name));
+}
+
