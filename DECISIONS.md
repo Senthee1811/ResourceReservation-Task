@@ -15,3 +15,4 @@
 - **Phase 8 (Hardening & Security Verification):** Verified end-to-end server-side action authentication with automated regression tests, ensured zero secret/hash exposure, added aria-live attributes for assistive technologies, and validated exclusion constraint concurrency with repeated zero-flakiness multi-threaded tests.
 - **Phase 9 (Submission Assets & Documentation):** Authored final production README, complete DBML data model matching all table constraints, and a 4-minute demonstration script detailing click paths and architectural rationale.
 
+

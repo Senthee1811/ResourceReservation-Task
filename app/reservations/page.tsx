@@ -49,7 +49,6 @@ export default async function ReservationsPage({
           {error}
         </div>
       )}
-
       <PageHeader
         title="My Reservations"
         description="View and manage your upcoming bookings and review your past activity."
