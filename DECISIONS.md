@@ -7,3 +7,4 @@
 - **Phase 1 (Session Strategy):** Implemented signed JWT sessions (`jose` HS256) stored in `httpOnly, SameSite=Lax, Secure-in-production` cookies, with `requireUser()` re-verifying the active user against PostgreSQL so role changes take effect immediately.
 - **Phase 1 (In-Memory Throttle Trade-off):** Implemented an in-memory 5-attempt/10-minute throttle per email for failed logins to prevent brute force while avoiding external Redis dependencies for assessment simplicity.
 - **Phase 2 (Design System):** Built a lightweight, accessible UI component kit in Tailwind CSS without third-party component libraries or calendar packages, guaranteeing zero dependency bloat and straightforward code explainability.
+- **Phase 3 (Resource Inactivation):** Resources with reservation history cannot be hard deleted; deactivating keeps historical records intact, warns administrators with the count of upcoming bookings, and automatically hides unbookable items from general members.
