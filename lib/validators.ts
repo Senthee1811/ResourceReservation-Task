@@ -56,3 +56,26 @@ export const loginSchema = z.object({
   email: z.string().trim().toLowerCase().email(),
   password: z.string().min(1),
 });
+
+export const adminReservationFilterSchema = z.object({
+  resourceId: z.string().uuid().optional().or(z.literal("")).catch(undefined),
+  userId: z.string().uuid().optional().or(z.literal("")).catch(undefined),
+  status: z.enum(["CONFIRMED", "CANCELLED", "ALL"]).optional().catch("ALL"),
+  from: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .or(z.literal(""))
+    .catch(undefined),
+  to: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/)
+    .optional()
+    .or(z.literal(""))
+    .catch(undefined),
+  page: z.coerce.number().int().min(1).default(1).catch(1),
+});
+export type AdminReservationFilterInput = z.infer<
+  typeof adminReservationFilterSchema
+>;
+
