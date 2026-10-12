@@ -73,7 +73,7 @@ npm run dev                     # http://localhost:3000
 npm test
 ```
 
-The tests are integration tests against the real database (the exclusion constraint is the thing being tested), so PostgreSQL must be running. **They truncate all tables**, so run `npm run db:seed` afterwards to restore demo data, or point `DATABASE_URL` at a separate database.
+The tests are integration tests against a dedicated PostgreSQL database (`reservation_test`). A Vitest `globalSetup` automatically creates `reservation_test` if missing and applies all migrations before test execution, ensuring test runs never truncate or mutate development data.
 
 ## Scripts
 
