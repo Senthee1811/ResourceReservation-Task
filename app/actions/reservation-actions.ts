@@ -86,6 +86,7 @@ export async function createReservationAction(
         values,
       };
     }
+    console.error("Unhandled error creating reservation:", err);
     return {
       error: "An unexpected error occurred while making your reservation.",
       values,
@@ -105,7 +106,17 @@ export async function cancelReservationAction(formData: FormData): Promise<void>
 
   if (!reservationId) return;
 
-  await cancelReservation(actor, reservationId, new Date());
+  try {
+    await cancelReservation(actor, reservationId, new Date());
+  } catch (err) {
+    if (err instanceof DomainError) {
+      const sep = returnUrl.includes("?") ? "&" : "?";
+      redirect(`${returnUrl}${sep}error=${encodeURIComponent(err.message)}`);
+    }
+    console.error("Unhandled error cancelling reservation:", err);
+    const sep = returnUrl.includes("?") ? "&" : "?";
+    redirect(`${returnUrl}${sep}error=${encodeURIComponent("An unexpected error occurred while cancelling the reservation.")}`);
+  }
 
   revalidatePath("/reservations");
   revalidatePath("/admin/reservations");

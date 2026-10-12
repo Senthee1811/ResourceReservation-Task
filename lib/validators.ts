@@ -53,8 +53,8 @@ export const reservationInputSchema = z
 export type ReservationInput = z.infer<typeof reservationInputSchema>;
 
 export const loginSchema = z.object({
-  email: z.string().trim().toLowerCase().email(),
-  password: z.string().min(1),
+  email: z.string().trim().toLowerCase().email().max(255),
+  password: z.string().min(1).max(100),
 });
 
 export const adminReservationFilterSchema = z.object({

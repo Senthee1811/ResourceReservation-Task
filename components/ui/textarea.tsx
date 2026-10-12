@@ -43,6 +43,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
           <p
             id={errorId}
             role="alert"
+            aria-live="polite"
             className="mt-1 text-xs text-red-600 dark:text-red-400"
           >
             {error}

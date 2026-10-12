@@ -54,6 +54,7 @@ export async function createResourceAction(
       }
       return { error: err.message };
     }
+    console.error("Unhandled error creating resource:", err);
     return { error: "An unexpected error occurred while creating resource" };
   }
 
@@ -99,6 +100,7 @@ export async function updateResourceAction(
       }
       return { error: err.message };
     }
+    console.error("Unhandled error updating resource:", err);
     return { error: "An unexpected error occurred while updating resource" };
   }
 

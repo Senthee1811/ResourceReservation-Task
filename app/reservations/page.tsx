@@ -14,6 +14,7 @@ export const instant = false;
 interface ReservationsPageProps {
   searchParams: Promise<{
     tab?: "upcoming" | "history";
+    error?: string;
   }>;
 }
 
@@ -21,7 +22,7 @@ export default async function ReservationsPage({
   searchParams,
 }: ReservationsPageProps) {
   const user = await requireUser();
-  const { tab = "upcoming" } = await searchParams;
+  const { tab = "upcoming", error } = await searchParams;
 
   const now = new Date();
   const allUserReservations = await listReservations({
@@ -43,6 +44,12 @@ export default async function ReservationsPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+      {error && (
+        <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300">
+          {error}
+        </div>
+      )}
+
       <PageHeader
         title="My Reservations"
         description="View and manage your upcoming bookings and review your past activity."

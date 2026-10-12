@@ -54,6 +54,7 @@ export function Alert({
   return (
     <div
       role="alert"
+      aria-live="polite"
       className={`rounded-lg border p-4 text-sm ${styles.container} ${className}`}
       {...props}
     >
