@@ -116,4 +116,18 @@ describe("server actions authentication & authorization guards", () => {
       await expect(action()).rejects.toThrow("REDIRECT:/resources?error=forbidden");
     }
   });
+
+  it("asserts requireUser redirects with error=session_expired when session user is missing from DB", async () => {
+    mockCookieToken = await encryptSession({
+      sub: "00000000-0000-0000-0000-000000000000",
+      role: "MEMBER",
+      name: "Deleted User",
+    });
+    redirectMock.mockClear();
+
+    await expect(
+      createReservationAction({}, new FormData()),
+    ).rejects.toThrow("REDIRECT:/login?error=session_expired");
+  });
 });
+

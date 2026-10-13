@@ -156,3 +156,35 @@ Checks 1–8 evaluation:
    - `npm test`: Passed (13 test files, 130 tests).
    - `npm run build`: Production bundle built cleanly with Turbopack.
 
+
+
+---
+
+# Bugfix Notes: Resource Route Infinite Redirect Loop Resolution
+
+## Confirmed Root Cause
+
+1. **Proxy JWT Verification vs PostgreSQL Database Re-verification (`proxy.ts` & `lib/auth.ts`):**
+   - When a browser retained a cryptographically valid JWT session cookie whose user ID no longer existed in PostgreSQL (e.g. following database re-seeding or migrations), `proxy.ts` validated the HMAC-SHA256 signature and forwarded the request to `/resources`.
+   - In `app/resources/page.tsx`, `requireUser()` executed `getCurrentUser()` to verify active database records, received `null`, and threw Next.js `redirect("/login")`.
+   - During streaming SSR, Next.js output a `<meta http-equiv="refresh" content="1;url=/login"/>` client-side redirect.
+   - Upon requesting `/login`, `proxy.ts` encountered the still-persisted session cookie and unconditionally redirected back to `/resources` via `NextResponse.redirect(new URL("/resources", request.url))`.
+   - This established an infinite redirect loop between `/resources` and `/login`, flooding the server terminal with rapid-fire requests.
+
+## Fixes Implemented
+
+1. **`proxy.ts` Cookie Cleanup and Loop Prevention:**
+   - Removed the unconditional redirect from `/login` back to `/resources`.
+   - Added logic on `/login` to detect if the incoming request has redirect or error parameters (`?from=` or `?error=`), and immediately delete the stale `session` cookie using `response.cookies.delete(COOKIE_NAME)` so the login page renders cleanly.
+2. **`lib/auth.ts` Explicit Session Expiration Redirection:**
+   - Updated `requireUser()` to redirect unauthenticated or missing sessions to `/login?error=session_expired`.
+   - This explicitly signals `proxy.ts` to purge the orphaned cookie and prevents any redirect bounce back into protected routes.
+3. **Automated Regression Guard (`tests/actions-auth.test.ts`):**
+   - Added a regression test verifying that `requireUser()` redirects with `error=session_expired` when an actor exists in session payload but is missing from the database.
+
+## Verification
+
+- **Simulated Stale Session Flow**: Verified `/resources` redirects to `/login?error=session_expired`, `proxy.ts` deletes the cookie with `Set-Cookie: session=; Max-Age=0`, and `/login` renders with `200 OK` (0 loops).
+- **Valid Session Flows**: Verified both Member and Admin sessions load `/resources` cleanly with `200 OK` and complete layout payload without redirects.
+- **Unauthenticated Flow**: Verified requests with no session redirect cleanly once to `/login?from=%2Fresources`.
+- **Quality Gates**: `npm run typecheck`, `npm run lint`, and all 13 test suites (131 tests) pass with 0 errors.
