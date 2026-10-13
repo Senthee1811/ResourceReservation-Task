@@ -10,6 +10,7 @@ import {
   encryptSession,
   recordFailedLogin,
   resetLoginAttempts,
+  signupMember,
 } from "../lib/auth";
 
 const testMemberEmail = "testmember@org.dev";
@@ -115,5 +116,96 @@ describe("lib/auth - credential authentication", () => {
     // Resetting attempts clears the throttle
     resetLoginAttempts(targetEmail);
     expect(checkLoginThrottle(targetEmail).throttled).toBe(false);
+  });
+});
+
+describe("lib/auth - member signup", () => {
+  it("creates a new member user with role MEMBER and securely hashed password", async () => {
+    const newMemberEmail = "newuser@org.dev";
+    const plainPassword = "SecurePassword123";
+
+    const user = await signupMember({
+      name: "New Member",
+      email: newMemberEmail,
+      password: plainPassword,
+      confirmPassword: plainPassword,
+    });
+
+    expect(user.id).toBeDefined();
+    expect(user.name).toBe("New Member");
+    expect(user.email).toBe(newMemberEmail);
+    expect(user.role).toBe("MEMBER");
+
+    // Password must be hashed with bcrypt, never plaintext
+    expect(user.passwordHash).not.toBe(plainPassword);
+    const isMatch = await bcrypt.compare(plainPassword, user.passwordHash);
+    expect(isMatch).toBe(true);
+
+    // Can immediately authenticate with credentials
+    const authenticated = await authenticateCredentials(newMemberEmail, plainPassword);
+    expect(authenticated.id).toBe(user.id);
+  });
+
+  it("normalizes email address by trimming and lowercasing", async () => {
+    const user = await signupMember({
+      name: "Cased Member",
+      email: "  UpperCase.Member@Org.Dev  ",
+      password: "Password123!",
+      confirmPassword: "Password123!",
+    });
+
+    expect(user.email).toBe("uppercase.member@org.dev");
+  });
+
+  it("rejects signup when email already exists", async () => {
+    await expect(
+      signupMember({
+        name: "Duplicate User",
+        email: testMemberEmail,
+        password: "SomePassword123",
+        confirmPassword: "SomePassword123",
+      }),
+    ).rejects.toMatchObject({
+      code: "CONFLICT",
+      message: "An account with this email address already exists",
+    });
+  });
+
+  it("rejects invalid input schema (short password or invalid email)", async () => {
+    await expect(
+      signupMember({
+        name: "Bad Password",
+        email: "badpass@org.dev",
+        password: "123",
+      }),
+    ).rejects.toMatchObject({
+      code: "VALIDATION",
+      message: expect.stringContaining("at least 6 characters"),
+    });
+
+    await expect(
+      signupMember({
+        name: "Bad Email",
+        email: "not-an-email",
+        password: "ValidPassword123",
+      }),
+    ).rejects.toMatchObject({
+      code: "VALIDATION",
+      message: expect.stringContaining("Invalid email address"),
+    });
+  });
+
+  it("rejects mismatched confirmPassword", async () => {
+    await expect(
+      signupMember({
+        name: "Mismatched Passwords",
+        email: "mismatch@org.dev",
+        password: "ValidPassword123",
+        confirmPassword: "DifferentPassword456",
+      }),
+    ).rejects.toMatchObject({
+      code: "VALIDATION",
+      message: "Passwords do not match",
+    });
   });
 });

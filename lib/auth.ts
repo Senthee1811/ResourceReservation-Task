@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 import { db } from "./db";
 import { users, type User } from "./db/schema";
 import { DomainError } from "./errors";
-import { loginSchema } from "./validators";
+import { loginSchema, createMemberInputSchema, signupSchema } from "./validators";
 
 export const COOKIE_NAME = "session";
 export const SESSION_DURATION_SECONDS = 7 * 24 * 60 * 60; // 7 days
@@ -182,6 +182,77 @@ export async function authenticateCredentials(
 
   resetLoginAttempts(email);
   return user;
+}
+
+export type SignupMemberInput = {
+  name: unknown;
+  email: unknown;
+  password: unknown;
+  confirmPassword?: unknown;
+};
+
+/**
+ * Registers a new member user with role MEMBER.
+ * Validates credentials, checks for existing accounts, hashes the password,
+ * and inserts the record into PostgreSQL.
+ */
+export async function signupMember(input: SignupMemberInput): Promise<User> {
+  const schemaToUse =
+    input.confirmPassword !== undefined ? signupSchema : createMemberInputSchema;
+  const parsed = schemaToUse.safeParse(input);
+
+  if (!parsed.success) {
+    const firstIssue = parsed.error.issues[0];
+    throw new DomainError(
+      "VALIDATION",
+      firstIssue?.message || "Invalid member registration details",
+    );
+  }
+
+  const { name, email, password } = parsed.data;
+
+  // Case-insensitive email duplicate check
+  const [existingUser] = await db
+    .select({ id: users.id })
+    .from(users)
+    .where(eq(users.email, email))
+    .limit(1);
+
+  if (existingUser) {
+    throw new DomainError(
+      "CONFLICT",
+      "An account with this email address already exists",
+    );
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  try {
+    const [newUser] = await db
+      .insert(users)
+      .values({
+        name,
+        email,
+        passwordHash,
+        role: "MEMBER",
+      })
+      .returning();
+
+    return newUser;
+  } catch (err: unknown) {
+    if (
+      typeof err === "object" &&
+      err !== null &&
+      "code" in err &&
+      (err as { code: string }).code === "23505"
+    ) {
+      throw new DomainError(
+        "CONFLICT",
+        "An account with this email address already exists",
+      );
+    }
+    throw err;
+  }
 }
 
 /**

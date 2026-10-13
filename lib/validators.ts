@@ -58,6 +58,40 @@ export const loginSchema = z.object({
   password: z.string().min(1).max(100),
 });
 
+export const createMemberInputSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Name must be at least 2 characters")
+    .max(100, "Name is too long"),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .email("Invalid email address")
+    .max(255),
+  password: z
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .max(100, "Password is too long"),
+});
+export type CreateMemberInput = z.infer<typeof createMemberInputSchema>;
+
+export const signupSchema = createMemberInputSchema
+  .extend({
+    confirmPassword: z.string().min(1, "Please confirm your password"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.password !== data.confirmPassword) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["confirmPassword"],
+        message: "Passwords do not match",
+      });
+    }
+  });
+export type SignupInput = z.infer<typeof signupSchema>;
+
 export const adminReservationFilterSchema = z.object({
   resourceId: z.string().uuid().optional().or(z.literal("")).catch(undefined),
   userId: z.string().uuid().optional().or(z.literal("")).catch(undefined),

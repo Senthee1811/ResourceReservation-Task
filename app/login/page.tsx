@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { LoginForm } from "./login-form";
 
 export const metadata: Metadata = {
@@ -37,7 +38,17 @@ export default function LoginPage() {
         <div className="rounded-2xl border border-slate-200/80 bg-white p-8 shadow-sm dark:border-slate-800 dark:bg-slate-900">
           <LoginForm />
 
-          <div className="mt-8 border-t border-slate-200 pt-6 dark:border-slate-800">
+          <div className="mt-6 text-center text-sm text-slate-600 dark:text-slate-400">
+            Need an account?{" "}
+            <Link
+              href="/signup"
+              className="font-medium text-slate-900 underline hover:text-slate-700 dark:text-slate-100 dark:hover:text-slate-300"
+            >
+              Sign up as a new member
+            </Link>
+          </div>
+
+          <div className="mt-6 border-t border-slate-200 pt-6 dark:border-slate-800">
             <h2 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
               Demo Credentials
             </h2>
