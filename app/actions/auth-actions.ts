@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import {
   authenticateCredentials,
+  clearAllLoginAttempts,
   createSession,
   destroySession,
 } from "@/lib/auth";
@@ -11,6 +12,11 @@ import { DomainError } from "@/lib/errors";
 export type LoginActionState = {
   error?: string;
 };
+
+export async function resetLockoutAction(): Promise<LoginActionState> {
+  clearAllLoginAttempts();
+  return {};
+}
 
 export async function loginAction(
   _prevState: LoginActionState,
