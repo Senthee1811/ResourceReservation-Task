@@ -24,6 +24,7 @@ export type ResourceInput = z.infer<typeof resourceInputSchema>;
 export const reservationInputSchema = z
   .object({
     resourceId: z.string().uuid("Invalid resource"),
+    userId: z.string().uuid("Invalid user").optional().or(z.literal("")),
     title: z.string().trim().min(2, "Title is required").max(120),
     notes: z.string().trim().max(500).optional().or(z.literal("")),
     startAt: z.coerce.date(),

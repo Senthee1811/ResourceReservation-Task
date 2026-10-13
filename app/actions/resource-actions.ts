@@ -119,6 +119,7 @@ export async function toggleResourceStatusAction(formData: FormData): Promise<vo
 
   if (resource.isActive) {
     const { upcomingCount } = await deactivateResource(actor, resourceId);
+    revalidatePath(`/resources/${resourceId}`);
     revalidatePath("/resources");
     revalidatePath("/admin/resources");
     if (upcomingCount > 0) {
@@ -137,6 +138,7 @@ export async function toggleResourceStatusAction(formData: FormData): Promise<vo
       description: resource.description || "",
       isActive: true,
     });
+    revalidatePath(`/resources/${resourceId}`);
     revalidatePath("/resources");
     revalidatePath("/admin/resources");
   }

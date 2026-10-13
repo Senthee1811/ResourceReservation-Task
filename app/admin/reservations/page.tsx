@@ -12,7 +12,6 @@ import {
   formatTime,
   parseLocalInput,
 } from "@/lib/datetime";
-import { cancelReservationAction } from "@/app/actions/reservation-actions";
 import { CancelReservationButton } from "@/app/reservations/cancel-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

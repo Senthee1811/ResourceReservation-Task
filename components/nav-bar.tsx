@@ -17,7 +17,7 @@ export async function NavBar() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <div className="flex items-center gap-8">
           <Link
-            href="/resources"
+            href={isAdmin ? "/admin/resources" : "/resources"}
             className="flex items-center gap-2.5 font-bold tracking-tight text-slate-900 transition-colors hover:text-slate-700 dark:text-slate-100 dark:hover:text-slate-300"
           >
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-slate-900 text-white shadow-xs dark:bg-slate-100 dark:text-slate-900">
@@ -42,36 +42,38 @@ export async function NavBar() {
             aria-label="Main Navigation"
             className="flex flex-wrap items-center gap-1 sm:gap-2 text-sm font-medium"
           >
-            <Link
-              href="/resources"
-              className="rounded-lg px-3 py-1.5 text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-            >
-              Resources
-            </Link>
-            <Link
-              href="/reservations"
-              className="rounded-lg px-3 py-1.5 text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
-            >
-              My reservations
-            </Link>
-
-            {isAdmin && (
-              <div className="flex items-center gap-1 sm:gap-2 border-l border-slate-200 pl-2 sm:pl-3 dark:border-slate-800">
+            {!isAdmin ? (
+              <>
+                <Link
+                  href="/resources"
+                  className="rounded-lg px-3 py-1.5 text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                >
+                  Resources
+                </Link>
+                <Link
+                  href="/reservations"
+                  className="rounded-lg px-3 py-1.5 text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+                >
+                  My reservations
+                </Link>
+              </>
+            ) : (
+              <div className="flex items-center gap-1 sm:gap-2">
                 <Link
                   href="/admin/resources"
-                  className="rounded-lg px-2.5 py-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 text-xs sm:text-sm"
+                  className="rounded-lg px-3 py-1.5 text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                 >
                   Admin: Resources
                 </Link>
                 <Link
                   href="/admin/reservations"
-                  className="rounded-lg px-2.5 py-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 text-xs sm:text-sm"
+                  className="rounded-lg px-3 py-1.5 text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                 >
                   Admin: Reservations
                 </Link>
                 <Link
                   href="/admin/usage"
-                  className="rounded-lg px-2.5 py-1.5 text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100 text-xs sm:text-sm"
+                  className="rounded-lg px-3 py-1.5 text-slate-700 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100"
                 >
                   Admin: Usage
                 </Link>

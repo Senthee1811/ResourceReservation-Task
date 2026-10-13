@@ -84,6 +84,7 @@ Shared organizational asset scheduling suffers from three primary failure modes:
      ) WHERE ("status" = 'CONFIRMED');
    ```
    This prevents concurrent double-bookings at the storage engine level. When a conflict occurs, PostgreSQL raises error code `23P01`, which `lib/reservation-service.ts` catches and maps to a clean `DomainError("CONFLICT")`.
+   > **Important:** Never use `drizzle-kit push`; always `npm run db:migrate` (or `npm run db:setup`). Hand-written PostgreSQL exclusion constraints (`reservations_no_overlap`) and valid range checks (`reservations_valid_range`) live in SQL migrations in `drizzle/` and cannot be created via `drizzle-kit push`.
 2. **Half-Open Ranges `[start, end)`:**
    Using half-open interval semantics allows contiguous reservations without artificial buffer gaps. A booking from 09:00 to 10:00 and another from 10:00 to 11:00 do not overlap.
 3. **UTC Storage with Asia/Colombo Display:**
@@ -147,49 +148,80 @@ The database diagram source is available in [docs/er-diagram.dbml](docs/er-diagr
 
 ---
 
-## Setup from a Fresh Clone
+## How to Run the Application
 
 ### Prerequisites
 - **Node.js:** v20.x or higher
-- **Docker & Docker Compose:** for PostgreSQL 16
+- **Docker Desktop & Docker Compose:** for PostgreSQL 16
 - **npm:** v10.x or higher
 
-### Step-by-Step Installation
+---
 
-1. **Clone and enter repository:**
-   ```bash
-   git clone <repo-url>
-   cd resource-reservation
-   ```
+### Quick Start (Local Development)
 
-2. **Configure environment:**
-   ```bash
-   cp .env.example .env
-   ```
-   *(Ensure `SESSION_SECRET` is set in `.env`)*
+Run the following commands from the repository root:
 
-3. **Start PostgreSQL database:**
-   ```bash
-   docker compose up -d
-   ```
-   *(PostgreSQL container runs on host port `5433`)*
+```bash
+# 1. Start the PostgreSQL 16 database in Docker (listens on host port 5433)
+docker compose up -d
 
-4. **Install dependencies:**
-   ```bash
-   npm install
-   ```
+# 2. Configure environment variables (if not already present)
+cp .env.example .env
 
-5. **Run migrations and seed demo data:**
-   ```bash
-   npm run db:setup
-   ```
-   *(Applies all SQL migrations including constraints and seeds default accounts/resources)*
+# 3. Install dependencies
+npm install
 
-6. **Start local development server:**
+# 4. Apply database migrations & seed demo accounts
+npm run db:setup
+
+# 5. Start the Next.js local development server
+npm run dev
+```
+
+Once started, open **[http://localhost:3000](http://localhost:3000)** in your browser.
+
+---
+
+### Running in Production Mode
+
+To test or run the optimized production bundle locally:
+
+```bash
+# Build the production application
+npm run build
+
+# Start the production server on port 3000
+npm run start
+```
+
+---
+
+### Database & Docker Management
+
+| Action | Command |
+| :--- | :--- |
+| **Start database container** | `docker compose up -d` |
+| **Check container health & status** | `docker compose ps` |
+| **View database logs** | `docker compose logs -f db` |
+| **Stop database container** | `docker compose down` |
+| **Fresh database reset (wipe volume & reseed)** | `docker compose down -v && docker compose up -d && npm run db:setup` |
+| **Re-seed demo accounts only** | `npm run db:seed` |
+| **Seed 5,000 reservations (benchmark)** | `npm run db:seed-bulk` |
+
+---
+
+### Cloud Deployment (Vercel)
+
+To deploy on [Vercel](https://vercel.com):
+1. Create a free cloud PostgreSQL database on [Neon](https://neon.tech) or [Supabase](https://supabase.com) (both natively support the required `btree_gist` extension).
+2. Run migrations and seed from your local terminal against the cloud database:
    ```bash
-   npm run dev
+   DATABASE_URL="your-neon-or-supabase-connection-string" npm run db:setup
    ```
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
+3. In your Vercel Project Settings, add the environment variables:
+   - `DATABASE_URL`: Cloud PostgreSQL connection string (`postgresql://...@...neon.tech/...`)
+   - `SESSION_SECRET`: A long secure random string (`openssl rand -base64 32`)
+4. Trigger deploy.
 
 ---
 
