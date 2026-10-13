@@ -35,10 +35,15 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL(target, request.url));
   }
 
-  // Already logged in visiting /login
+  // Visiting /login: clear stale session cookie if arriving with an error or from parameter, and allow login page to render
   if (pathname === "/login") {
-    if (session) {
-      return NextResponse.redirect(new URL("/resources", request.url));
+    if (
+      request.nextUrl.searchParams.has("from") ||
+      request.nextUrl.searchParams.has("error")
+    ) {
+      const response = NextResponse.next();
+      response.cookies.delete(COOKIE_NAME);
+      return response;
     }
     return NextResponse.next();
   }

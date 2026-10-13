@@ -198,7 +198,7 @@ export async function getCurrentUser(): Promise<User | null> {
 export async function requireUser(): Promise<User> {
   const user = await getCurrentUser();
   if (!user) {
-    redirect("/login");
+    redirect("/login?error=session_expired");
   }
   return user;
 }
