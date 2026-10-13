@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireUser } from "@/lib/auth";
 import { listReservations } from "@/lib/reservation-service";
 import { formatDate, formatTime } from "@/lib/datetime";
+import { Alert } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -45,9 +46,9 @@ export default async function ReservationsPage({
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {error && (
-        <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-300">
+        <Alert variant="error" className="mb-6">
           {error}
-        </div>
+        </Alert>
       )}
       <PageHeader
         title="My Reservations"

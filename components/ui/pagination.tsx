@@ -1,5 +1,8 @@
 import Link from "next/link";
-import React from "react";
+import * as React from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { buttonVariants } from "@/components/ui/button";
 
 export interface PaginationProps {
   currentPage: number;
@@ -26,7 +29,10 @@ export function Pagination({
   return (
     <nav
       aria-label="Pagination Navigation"
-      className={`flex flex-col items-center justify-between gap-4 border-t border-slate-200 px-2 py-4 sm:flex-row dark:border-slate-800 ${className}`}
+      className={cn(
+        "flex flex-col items-center justify-between gap-4 border-t border-slate-200 px-2 py-4 sm:flex-row dark:border-slate-800",
+        className,
+      )}
     >
       <div className="text-sm text-slate-600 dark:text-slate-400">
         Showing{" "}
@@ -48,38 +54,19 @@ export function Pagination({
         {hasPrev ? (
           <Link
             href={createPageUrl(currentPage - 1)}
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-xs hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-1 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1")}
           >
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 19.5L8.25 12l7.5-7.5"
-              />
-            </svg>
+            <ChevronLeft className="h-4 w-4" />
             Previous
           </Link>
         ) : (
-          <span className="inline-flex cursor-not-allowed items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-400 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-600">
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 19.5L8.25 12l7.5-7.5"
-              />
-            </svg>
+          <span
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "gap-1 opacity-50 cursor-not-allowed hover:bg-transparent",
+            )}
+          >
+            <ChevronLeft className="h-4 w-4" />
             Previous
           </span>
         )}
@@ -91,39 +78,20 @@ export function Pagination({
         {hasNext ? (
           <Link
             href={createPageUrl(currentPage + 1)}
-            className="inline-flex items-center gap-1 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm font-medium text-slate-700 shadow-xs hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-1 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+            className={cn(buttonVariants({ variant: "outline", size: "sm" }), "gap-1")}
           >
             Next
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8.25 4.5l7.5 7.5-7.5 7.5"
-              />
-            </svg>
+            <ChevronRight className="h-4 w-4" />
           </Link>
         ) : (
-          <span className="inline-flex cursor-not-allowed items-center gap-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm font-medium text-slate-400 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-600">
+          <span
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "gap-1 opacity-50 cursor-not-allowed hover:bg-transparent",
+            )}
+          >
             Next
-            <svg
-              className="h-4 w-4"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M8.25 4.5l7.5 7.5-7.5 7.5"
-              />
-            </svg>
+            <ChevronRight className="h-4 w-4" />
           </span>
         )}
       </div>

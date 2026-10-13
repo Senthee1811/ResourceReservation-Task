@@ -7,20 +7,17 @@ import {
 } from "@/app/actions/reservation-actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, type SelectOption } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert } from "@/components/ui/alert";
 import { MAX_BOOKING_HOURS } from "@/lib/validators";
 
-// 24-hour time slots in 15-minute intervals from 00:00 to 23:45
-const BASE_TIME_SLOTS_24H: string[] = [];
-for (let h = 0; h < 24; h++) {
-  for (let m = 0; m < 60; m += 15) {
-    BASE_TIME_SLOTS_24H.push(
-      `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`,
-    );
-  }
-}
+// 24-hour hour list: 00 to 23
+const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+
+// 5-minute interval minute list: 00 to 55
+const BASE_MINUTES = [
+  "00", "05", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55",
+];
 
 interface BookingFormProps {
   resourceId: string;
@@ -48,41 +45,64 @@ export function BookingForm({
   const initialStart = state?.values?.startTime || prefillStartTime;
   const initialEnd = state?.values?.endTime || prefillEndTime;
 
-  const [startTime, setStartTime] = useState(initialStart);
-  const [endTime, setEndTime] = useState(initialEnd);
+  const [initStartH, initStartM] = (initialStart || "09:00").split(":");
+  const [initEndH, initEndM] = (initialEnd || "10:00").split(":");
+
+  const [startHour, setStartHour] = useState(initStartH?.padStart(2, "0") || "09");
+  const [startMinute, setStartMinute] = useState(initStartM?.padStart(2, "0") || "00");
+  const [endHour, setEndHour] = useState(initEndH?.padStart(2, "0") || "10");
+  const [endMinute, setEndMinute] = useState(initEndM?.padStart(2, "0") || "00");
   const [isCustomMode, setIsCustomMode] = useState(false);
 
-  // Ensure current/prefilled values are present in options list
-  const timeOptions: SelectOption[] = useMemo(() => {
-    const list = [...BASE_TIME_SLOTS_24H];
-    if (startTime && !list.includes(startTime)) {
-      list.push(startTime);
-    }
-    if (endTime && !list.includes(endTime)) {
-      list.push(endTime);
-    }
-    list.sort();
-    return list.map((time) => ({ value: time, label: time }));
-  }, [startTime, endTime]);
+  // Fallback string values for custom input mode
+  const [customStart, setCustomStart] = useState(`${startHour}:${startMinute}`);
+  const [customEnd, setCustomEnd] = useState(`${endHour}:${endMinute}`);
 
-  const handleStartTimeChange = (newStart: string) => {
-    setStartTime(newStart);
-    // Automatically advance endTime by 1 hour if end time is before or equal to new start time
-    const [startH, startM] = newStart.split(":").map(Number);
-    const [endH, endM] = endTime.split(":").map(Number);
-    if (!Number.isNaN(startH) && !Number.isNaN(endH)) {
-      const startMinutes = startH * 60 + (startM || 0);
-      const endMinutes = endH * 60 + (endM || 0);
-      if (endMinutes <= startMinutes) {
-        const nextMinutes = Math.min(startMinutes + 60, 23 * 60 + 45);
-        const nextH = Math.floor(nextMinutes / 60);
-        const nextM = nextMinutes % 60;
-        setEndTime(
-          `${String(nextH).padStart(2, "0")}:${String(nextM).padStart(2, "0")}`,
-        );
-      }
+  const startMinutesList = useMemo(() => {
+    const list = [...BASE_MINUTES];
+    if (startMinute && !list.includes(startMinute)) {
+      list.push(startMinute);
+      list.sort();
+    }
+    return list;
+  }, [startMinute]);
+
+  const endMinutesList = useMemo(() => {
+    const list = [...BASE_MINUTES];
+    if (endMinute && !list.includes(endMinute)) {
+      list.push(endMinute);
+      list.sort();
+    }
+    return list;
+  }, [endMinute]);
+
+  const handleStartChange = (newHour: string, newMinute: string) => {
+    setStartHour(newHour);
+    setStartMinute(newMinute);
+    setCustomStart(`${newHour}:${newMinute}`);
+
+    const startTotalMinutes = parseInt(newHour, 10) * 60 + parseInt(newMinute, 10);
+    const endTotalMinutes = parseInt(endHour, 10) * 60 + parseInt(endMinute, 10);
+
+    // If End Time is before or equal to Start Time, automatically advance End Time by 1 hour
+    if (endTotalMinutes <= startTotalMinutes) {
+      const nextTotal = Math.min(startTotalMinutes + 60, 23 * 60 + 55);
+      const nextH = String(Math.floor(nextTotal / 60)).padStart(2, "0");
+      const nextM = String(nextTotal % 60).padStart(2, "0");
+      setEndHour(nextH);
+      setEndMinute(nextM);
+      setCustomEnd(`${nextH}:${nextM}`);
     }
   };
+
+  const handleEndChange = (newHour: string, newMinute: string) => {
+    setEndHour(newHour);
+    setEndMinute(newMinute);
+    setCustomEnd(`${newHour}:${newMinute}`);
+  };
+
+  const formattedStartTime = isCustomMode ? customStart : `${startHour}:${startMinute}`;
+  const formattedEndTime = isCustomMode ? customEnd : `${endHour}:${endMinute}`;
 
   return (
     <div className="rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs dark:border-slate-800 dark:bg-slate-900">
@@ -103,6 +123,9 @@ export function BookingForm({
 
       <form action={formAction} className="space-y-4" noValidate>
         <input type="hidden" name="resourceId" value={resourceId} />
+        {/* Hidden inputs ensure server action receives full HH:mm format */}
+        <input type="hidden" name="startTime" value={formattedStartTime} />
+        <input type="hidden" name="endTime" value={formattedEndTime} />
 
         <Input
           label="Reservation Title"
@@ -124,68 +147,149 @@ export function BookingForm({
           />
         </div>
 
-        <div className="space-y-1.5">
-          <div className="grid grid-cols-2 gap-3">
-            {isCustomMode ? (
-              <>
-                <Input
-                  label="Start Time (24h)"
-                  id="booking-start"
-                  name="startTime"
-                  type="text"
-                  required
-                  value={startTime}
-                  onChange={(e) => setStartTime(e.target.value)}
-                  placeholder="09:00"
-                  pattern="^([01]\d|2[0-3]):([0-5]\d)$"
-                  helperText="Format: HH:mm (e.g. 14:00)"
-                />
+        {/* Time Selection Section */}
+        <div className="space-y-2">
+          {isCustomMode ? (
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Start Time (24h)"
+                id="booking-start"
+                type="text"
+                required
+                value={customStart}
+                onChange={(e) => setCustomStart(e.target.value)}
+                placeholder="09:00"
+                pattern="^([01]\d|2[0-3]):([0-5]\d)$"
+                helperText="Format: HH:mm (e.g. 14:00)"
+              />
 
-                <Input
-                  label="End Time (24h)"
-                  id="booking-end"
-                  name="endTime"
-                  type="text"
-                  required
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  placeholder="10:00"
-                  pattern="^([01]\d|2[0-3]):([0-5]\d)$"
-                  helperText="Format: HH:mm (e.g. 15:00)"
-                />
-              </>
-            ) : (
-              <>
-                <Select
-                  label="Start Time (24h)"
-                  id="booking-start"
-                  name="startTime"
-                  required
-                  value={startTime}
-                  onChange={(e) => handleStartTimeChange(e.target.value)}
-                  options={timeOptions}
-                />
+              <Input
+                label="End Time (24h)"
+                id="booking-end"
+                type="text"
+                required
+                value={customEnd}
+                onChange={(e) => setCustomEnd(e.target.value)}
+                placeholder="10:00"
+                pattern="^([01]\d|2[0-3]):([0-5]\d)$"
+                helperText="Format: HH:mm (e.g. 15:00)"
+              />
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Start Time: Split Hour & Minute */}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                  Start Time (24h) <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label htmlFor="booking-start-hour" className="sr-only">
+                      Start Hour
+                    </label>
+                    <select
+                      id="booking-start-hour"
+                      value={startHour}
+                      onChange={(e) => handleStartChange(e.target.value, startMinute)}
+                      aria-label="Start Hour"
+                      className="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-2 font-mono text-sm text-slate-900 shadow-sm transition-colors focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-100 dark:focus:ring-slate-100/10"
+                    >
+                      {HOURS.map((h) => (
+                        <option key={h} value={h}>
+                          {h} hr
+                        </option>
+                      ))}
+                    </select>
+                    <span className="mt-0.5 block text-center text-[10px] text-slate-400">
+                      Hour (00–23)
+                    </span>
+                  </div>
 
-                <Select
-                  label="End Time (24h)"
-                  id="booking-end"
-                  name="endTime"
-                  required
-                  value={endTime}
-                  onChange={(e) => setEndTime(e.target.value)}
-                  options={timeOptions}
-                />
-              </>
-            )}
-          </div>
+                  <div>
+                    <label htmlFor="booking-start-minute" className="sr-only">
+                      Start Minute
+                    </label>
+                    <select
+                      id="booking-start-minute"
+                      value={startMinute}
+                      onChange={(e) => handleStartChange(startHour, e.target.value)}
+                      aria-label="Start Minute"
+                      className="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-2 font-mono text-sm text-slate-900 shadow-sm transition-colors focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-100 dark:focus:ring-slate-100/10"
+                    >
+                      {startMinutesList.map((m) => (
+                        <option key={m} value={m}>
+                          {m} min
+                        </option>
+                      ))}
+                    </select>
+                    <span className="mt-0.5 block text-center text-[10px] text-slate-400">
+                      Min (00–55)
+                    </span>
+                  </div>
+                </div>
+              </div>
 
-          <div className="flex justify-end">
+              {/* End Time: Split Hour & Minute */}
+              <div>
+                <label className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200">
+                  End Time (24h) <span className="text-red-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <label htmlFor="booking-end-hour" className="sr-only">
+                      End Hour
+                    </label>
+                    <select
+                      id="booking-end-hour"
+                      value={endHour}
+                      onChange={(e) => handleEndChange(e.target.value, endMinute)}
+                      aria-label="End Hour"
+                      className="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-2 font-mono text-sm text-slate-900 shadow-sm transition-colors focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-100 dark:focus:ring-slate-100/10"
+                    >
+                      {HOURS.map((h) => (
+                        <option key={h} value={h}>
+                          {h} hr
+                        </option>
+                      ))}
+                    </select>
+                    <span className="mt-0.5 block text-center text-[10px] text-slate-400">
+                      Hour (00–23)
+                    </span>
+                  </div>
+
+                  <div>
+                    <label htmlFor="booking-end-minute" className="sr-only">
+                      End Minute
+                    </label>
+                    <select
+                      id="booking-end-minute"
+                      value={endMinute}
+                      onChange={(e) => handleEndChange(endHour, e.target.value)}
+                      aria-label="End Minute"
+                      className="block w-full rounded-lg border border-slate-300 bg-white px-2.5 py-2 font-mono text-sm text-slate-900 shadow-sm transition-colors focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-100 dark:focus:ring-slate-100/10"
+                    >
+                      {endMinutesList.map((m) => (
+                        <option key={m} value={m}>
+                          {m} min
+                        </option>
+                      ))}
+                    </select>
+                    <span className="mt-0.5 block text-center text-[10px] text-slate-400">
+                      Min (00–55)
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div className="flex justify-end pt-1">
             <button
               type="button"
               onClick={() => setIsCustomMode(!isCustomMode)}
               className="text-xs text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 underline cursor-pointer"
             >
-              {isCustomMode ? "← Choose from 24h slot list" : "Type custom 24h time →"}
+              {isCustomMode ? "← Use split Hour & Minute dropdowns" : "Type custom 24h time →"}
             </button>
           </div>
         </div>
@@ -231,4 +335,5 @@ export function BookingForm({
     </div>
   );
 }
+
 

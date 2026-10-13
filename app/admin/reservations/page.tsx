@@ -13,6 +13,7 @@ import {
   parseLocalInput,
 } from "@/lib/datetime";
 import { cancelReservationAction } from "@/app/actions/reservation-actions";
+import { CancelReservationButton } from "@/app/reservations/cancel-button";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -302,21 +303,13 @@ export default async function AdminReservationsPage({
 
                       <td className="px-6 py-4 text-right">
                         {isUpcoming ? (
-                          <form
-                            action={cancelReservationAction}
-                            className="inline"
-                          >
-                            <input type="hidden" name="reservationId" value={res.id} />
-                            <input type="hidden" name="returnUrl" value={currentUrl} />
-                            <Button
-                              type="submit"
-                              variant="ghost"
-                              size="sm"
-                              className="text-rose-600 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/30"
-                            >
-                              Cancel Booking
-                            </Button>
-                          </form>
+                          <div className="flex justify-end">
+                            <CancelReservationButton
+                              reservationId={res.id}
+                              reservationTitle={res.title}
+                              returnUrl={currentUrl}
+                            />
+                          </div>
                         ) : (
                           <span className="text-xs text-slate-400">—</span>
                         )}

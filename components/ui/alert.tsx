@@ -1,131 +1,98 @@
-import React from "react";
+import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
+import { AlertCircle, AlertTriangle, CheckCircle2, Info } from "lucide-react";
+import { cn } from "@/lib/utils";
 
-export type AlertVariant = "info" | "success" | "warning" | "error";
+const alertVariants = cva(
+  "relative w-full rounded-lg border p-4 text-sm [&>svg~*]:pl-7 [&>svg+div]:translate-y-[-3px] [&>svg]:absolute [&>svg]:left-4 [&>svg]:top-4 [&>svg]:text-current",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-white text-slate-900 border-slate-200 dark:bg-slate-900 dark:text-slate-100 dark:border-slate-800",
+        info: "border-sky-200 bg-sky-50 text-sky-800 dark:border-sky-900/60 dark:bg-sky-950/40 dark:text-sky-300 [&>svg]:text-sky-600 dark:[&>svg]:text-sky-400",
+        success:
+          "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300 [&>svg]:text-emerald-600 dark:[&>svg]:text-emerald-400",
+        warning:
+          "border-amber-200 bg-amber-50 text-amber-800 dark:border-amber-900/60 dark:bg-amber-950/40 dark:text-amber-300 [&>svg]:text-amber-600 dark:[&>svg]:text-amber-400",
+        error:
+          "border-red-200 bg-red-50 text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 [&>svg]:text-red-600 dark:[&>svg]:text-red-400",
+        destructive:
+          "border-red-200 bg-red-50 text-red-800 dark:border-red-900/60 dark:bg-red-950/40 dark:text-red-300 [&>svg]:text-red-600 dark:[&>svg]:text-red-400",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  },
+);
 
-export interface AlertProps extends React.HTMLAttributes<HTMLDivElement> {
-  variant?: AlertVariant;
+export type AlertVariant =
+  | "default"
+  | "info"
+  | "success"
+  | "warning"
+  | "error"
+  | "destructive";
+
+export interface AlertProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof alertVariants> {
   title?: string;
-  children: React.ReactNode;
 }
 
-const variantStyles: Record<
-  AlertVariant,
-  { container: string; icon: string; title: string; text: string }
-> = {
-  info: {
-    container:
-      "border-sky-200 bg-sky-50 dark:border-sky-900/60 dark:bg-sky-950/40",
-    icon: "text-sky-600 dark:text-sky-400",
-    title: "text-sky-900 dark:text-sky-200",
-    text: "text-sky-800 dark:text-sky-300",
-  },
-  success: {
-    container:
-      "border-emerald-200 bg-emerald-50 dark:border-emerald-900/60 dark:bg-emerald-950/40",
-    icon: "text-emerald-600 dark:text-emerald-400",
-    title: "text-emerald-900 dark:text-emerald-200",
-    text: "text-emerald-800 dark:text-emerald-300",
-  },
-  warning: {
-    container:
-      "border-amber-200 bg-amber-50 dark:border-amber-900/60 dark:bg-amber-950/40",
-    icon: "text-amber-600 dark:text-amber-400",
-    title: "text-amber-900 dark:text-amber-200",
-    text: "text-amber-800 dark:text-amber-300",
-  },
-  error: {
-    container:
-      "border-red-200 bg-red-50 dark:border-red-900/60 dark:bg-red-950/40",
-    icon: "text-red-600 dark:text-red-400",
-    title: "text-red-900 dark:text-red-200",
-    text: "text-red-800 dark:text-red-300",
-  },
-};
+const Alert = React.forwardRef<HTMLDivElement, AlertProps>(
+  ({ className, variant = "info", title, children, ...props }, ref) => {
+    const Icon =
+      variant === "error" || variant === "destructive"
+        ? AlertCircle
+        : variant === "warning"
+          ? AlertTriangle
+          : variant === "success"
+            ? CheckCircle2
+            : Info;
 
-export function Alert({
-  variant = "info",
-  title,
-  children,
-  className = "",
-  ...props
-}: AlertProps) {
-  const styles = variantStyles[variant];
-
-  return (
-    <div
-      role="alert"
-      aria-live="polite"
-      className={`rounded-lg border p-4 text-sm ${styles.container} ${className}`}
-      {...props}
-    >
-      <div className="flex gap-3">
-        <div className={`mt-0.5 shrink-0 ${styles.icon}`}>
-          {variant === "error" && (
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"
-              />
-            </svg>
-          )}
-          {variant === "warning" && (
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"
-              />
-            </svg>
-          )}
-          {variant === "success" && (
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          )}
-          {variant === "info" && (
-            <svg
-              className="h-5 w-5"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth="2"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"
-              />
-            </svg>
-          )}
-        </div>
-        <div className="flex-1">
-          {title && <h4 className={`font-semibold ${styles.title}`}>{title}</h4>}
-          <div className={`${title ? "mt-1" : ""} ${styles.text}`}>{children}</div>
+    return (
+      <div
+        ref={ref}
+        role="alert"
+        aria-live="polite"
+        className={cn(alertVariants({ variant }), className)}
+        {...props}
+      >
+        <Icon className="h-4 w-4" />
+        <div>
+          {title && <h5 className="mb-1 font-semibold leading-none tracking-tight">{title}</h5>}
+          <div className="text-sm leading-relaxed">{children}</div>
         </div>
       </div>
-    </div>
-  );
-}
+    );
+  },
+);
+Alert.displayName = "Alert";
+
+const AlertTitle = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h5
+    ref={ref}
+    className={cn("mb-1 font-medium leading-none tracking-tight", className)}
+    {...props}
+  />
+));
+AlertTitle.displayName = "AlertTitle";
+
+const AlertDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("text-sm [&_p]:leading-relaxed", className)}
+    {...props}
+  />
+));
+AlertDescription.displayName = "AlertDescription";
+
+export { Alert, AlertTitle, AlertDescription, alertVariants };
