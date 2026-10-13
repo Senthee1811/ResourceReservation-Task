@@ -77,6 +77,10 @@ export function resetLoginAttempts(email: string): void {
   loginAttempts.delete(email.trim().toLowerCase());
 }
 
+export function clearAllLoginAttempts(): void {
+  loginAttempts.clear();
+}
+
 export async function encryptSession(payload: SessionPayload): Promise<string> {
   return new SignJWT({ ...payload })
     .setProtectedHeader({ alg: "HS256" })
