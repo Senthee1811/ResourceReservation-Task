@@ -39,12 +39,22 @@ export async function createReservation(
     );
   }
 
+  let targetUserId = actor.id;
+  if (actor.role === "ADMIN" && input.userId) {
+    const [targetUser] = await db
+      .select({ id: users.id })
+      .from(users)
+      .where(eq(users.id, input.userId));
+    if (!targetUser) throw new DomainError("NOT_FOUND", "User not found");
+    targetUserId = targetUser.id;
+  }
+
   try {
     const [created] = await db
       .insert(reservations)
       .values({
         resourceId: input.resourceId,
-        userId: actor.id,
+        userId: targetUserId,
         title: input.title,
         notes: input.notes || null,
         startAt: input.startAt,

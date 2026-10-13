@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { requireUser } from "@/lib/auth";
+import { requireUser, listAllUsers } from "@/lib/auth";
 import { getResource } from "@/lib/resource-service";
 import { getAvailability } from "@/lib/reservation-service";
 import {
@@ -33,7 +33,8 @@ export default async function ResourceDetailsPage({
   params,
   searchParams,
 }: ResourceDetailsPageProps) {
-  await requireUser();
+  const currentUser = await requireUser();
+  const allUsers = currentUser.role === "ADMIN" ? await listAllUsers() : [];
   const { id } = await params;
   const { date: rawDate, view: rawView, booked } = await searchParams;
 
@@ -214,6 +215,8 @@ export default async function ResourceDetailsPage({
         selectedDateStr={selectedDateStr}
         viewMode={viewMode}
         bookings={rawReservations}
+        isAdmin={currentUser.role === "ADMIN"}
+        userList={allUsers}
       />
     </div>
   );

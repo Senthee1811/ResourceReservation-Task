@@ -11,6 +11,8 @@ interface CalendarContainerProps {
   selectedDateStr: string;
   viewMode: "day" | "week";
   bookings: RawBooking[];
+  isAdmin?: boolean;
+  userList?: Array<{ id: string; name: string; email: string; role: "ADMIN" | "MEMBER" }>;
 }
 
 export function CalendarContainer({
@@ -19,6 +21,8 @@ export function CalendarContainer({
   selectedDateStr,
   viewMode,
   bookings,
+  isAdmin = false,
+  userList = [],
 }: CalendarContainerProps) {
   const [formDate, setFormDate] = useState(selectedDateStr);
   const [formStart, setFormStart] = useState("09:00");
@@ -59,6 +63,8 @@ export function CalendarContainer({
           defaultDate={formDate}
           prefillStartTime={formStart}
           prefillEndTime={formEnd}
+          isAdmin={isAdmin}
+          userList={userList}
         />
       </div>
     </div>

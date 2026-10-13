@@ -25,6 +25,8 @@ interface BookingFormProps {
   defaultDate: string;
   prefillStartTime?: string;
   prefillEndTime?: string;
+  isAdmin?: boolean;
+  userList?: Array<{ id: string; name: string; email: string }>;
 }
 
 export function BookingForm({
@@ -33,6 +35,8 @@ export function BookingForm({
   defaultDate,
   prefillStartTime = "09:00",
   prefillEndTime = "10:00",
+  isAdmin = false,
+  userList = [],
 }: BookingFormProps) {
   const [state, formAction, isPending] = useActionState<
     ReservationActionState,
@@ -126,6 +130,30 @@ export function BookingForm({
         {/* Hidden inputs ensure server action receives full HH:mm format */}
         <input type="hidden" name="startTime" value={formattedStartTime} />
         <input type="hidden" name="endTime" value={formattedEndTime} />
+
+        {isAdmin && userList && userList.length > 0 && (
+          <div>
+            <label
+              htmlFor="booking-user"
+              className="mb-1.5 block text-sm font-medium text-slate-700 dark:text-slate-200"
+            >
+              Book on behalf of (Admin)
+            </label>
+            <select
+              id="booking-user"
+              name="userId"
+              defaultValue={state?.values?.userId || ""}
+              className="block w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm transition-colors focus:border-slate-900 focus:outline-none focus:ring-2 focus:ring-slate-900/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-slate-100 dark:focus:ring-slate-100/10"
+            >
+              <option value="">Book for myself (Admin)</option>
+              {userList.map((u) => (
+                <option key={u.id} value={u.id}>
+                  {u.name} ({u.email})
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
 
         <Input
           label="Reservation Title"

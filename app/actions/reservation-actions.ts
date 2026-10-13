@@ -12,6 +12,7 @@ import {
 
 export type ReservationFormValues = {
   resourceId: string;
+  userId?: string;
   title: string;
   notes?: string;
   date: string;
@@ -33,6 +34,7 @@ export async function createReservationAction(
   const actor = await requireUser();
 
   const resourceId = formData.get("resourceId") as string;
+  const userId = (formData.get("userId") as string) || undefined;
   const title = (formData.get("title") as string) || "";
   const notes = (formData.get("notes") as string) || "";
   const date = (formData.get("date") as string) || "";
@@ -41,6 +43,7 @@ export async function createReservationAction(
 
   const values: ReservationFormValues = {
     resourceId,
+    userId,
     title,
     notes,
     date,
@@ -72,6 +75,7 @@ export async function createReservationAction(
       actor,
       {
         resourceId,
+        userId: actor.role === "ADMIN" ? userId : undefined,
         title,
         notes,
         startAt,
@@ -96,6 +100,8 @@ export async function createReservationAction(
   revalidatePath(`/resources/${resourceId}`);
   revalidatePath("/reservations");
   revalidatePath("/admin/reservations");
+  revalidatePath("/admin/usage");
+  revalidatePath("/resources");
   redirect(`/resources/${resourceId}?booked=true&date=${date}`);
 }
 
@@ -106,8 +112,9 @@ export async function cancelReservationAction(formData: FormData): Promise<void>
 
   if (!reservationId) return;
 
+  let cancelled;
   try {
-    await cancelReservation(actor, reservationId, new Date());
+    cancelled = await cancelReservation(actor, reservationId, new Date());
   } catch (err) {
     if (err instanceof DomainError) {
       const sep = returnUrl.includes("?") ? "&" : "?";
@@ -118,8 +125,12 @@ export async function cancelReservationAction(formData: FormData): Promise<void>
     redirect(`${returnUrl}${sep}error=${encodeURIComponent("An unexpected error occurred while cancelling the reservation.")}`);
   }
 
+  if (cancelled?.resourceId) {
+    revalidatePath(`/resources/${cancelled.resourceId}`);
+  }
   revalidatePath("/reservations");
   revalidatePath("/admin/reservations");
+  revalidatePath("/admin/usage");
   revalidatePath("/resources");
   redirect(returnUrl);
 }
