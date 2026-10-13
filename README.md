@@ -84,6 +84,7 @@ Shared organizational asset scheduling suffers from three primary failure modes:
      ) WHERE ("status" = 'CONFIRMED');
    ```
    This prevents concurrent double-bookings at the storage engine level. When a conflict occurs, PostgreSQL raises error code `23P01`, which `lib/reservation-service.ts` catches and maps to a clean `DomainError("CONFLICT")`.
+   > **Important:** Never use `drizzle-kit push`; always `npm run db:migrate` (or `npm run db:setup`). Hand-written PostgreSQL exclusion constraints (`reservations_no_overlap`) and valid range checks (`reservations_valid_range`) live in SQL migrations in `drizzle/` and cannot be created via `drizzle-kit push`.
 2. **Half-Open Ranges `[start, end)`:**
    Using half-open interval semantics allows contiguous reservations without artificial buffer gaps. A booking from 09:00 to 10:00 and another from 10:00 to 11:00 do not overlap.
 3. **UTC Storage with Asia/Colombo Display:**
