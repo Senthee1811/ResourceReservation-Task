@@ -1,4 +1,5 @@
-import React from "react";
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
 export interface PageHeaderProps {
   title: string;
@@ -17,14 +18,17 @@ export function PageHeader({
 }: PageHeaderProps) {
   return (
     <div
-      className={`mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center ${className}`}
+      className={cn(
+        "mb-8 flex flex-col justify-between gap-4 sm:flex-row sm:items-center",
+        className,
+      )}
     >
-      <div>
+      <div className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl dark:text-slate-100">
           {title}
         </h1>
         {description && (
-          <p className="mt-1.5 text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             {description}
           </p>
         )}

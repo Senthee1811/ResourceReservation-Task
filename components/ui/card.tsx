@@ -1,85 +1,89 @@
-import React from "react";
+import * as React from "react";
+import { cn } from "@/lib/utils";
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode;
-}
+export type CardProps = React.HTMLAttributes<HTMLDivElement>;
 
-export function Card({ children, className = "", ...props }: CardProps) {
-  return (
+const Card = React.forwardRef<HTMLDivElement, CardProps>(
+  ({ className, ...props }, ref) => (
     <div
-      className={`rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs transition-shadow dark:border-slate-800 dark:bg-slate-900 ${className}`}
+      ref={ref}
+      className={cn(
+        "rounded-xl border border-slate-200/80 bg-white p-6 shadow-xs transition-shadow dark:border-slate-800 dark:bg-slate-900 text-slate-900 dark:text-slate-100",
+        className,
+      )}
       {...props}
-    >
-      {children}
-    </div>
-  );
-}
+    />
+  ),
+);
+Card.displayName = "Card";
 
-export function CardHeader({
-  children,
-  className = "",
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={`mb-4 flex flex-col space-y-1.5 ${className}`} {...props}>
-      {children}
-    </div>
-  );
-}
+const CardHeader = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn("mb-4 flex flex-col space-y-1.5", className)}
+    {...props}
+  />
+));
+CardHeader.displayName = "CardHeader";
 
-export function CardTitle({
-  children,
-  className = "",
-  ...props
-}: React.HTMLAttributes<HTMLHeadingElement>) {
-  return (
-    <h3
-      className={`text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100 ${className}`}
-      {...props}
-    >
-      {children}
-    </h3>
-  );
-}
+const CardTitle = React.forwardRef<
+  HTMLHeadingElement,
+  React.HTMLAttributes<HTMLHeadingElement>
+>(({ className, ...props }, ref) => (
+  <h3
+    ref={ref}
+    className={cn(
+      "text-lg font-semibold tracking-tight text-slate-900 dark:text-slate-100",
+      className,
+    )}
+    {...props}
+  />
+));
+CardTitle.displayName = "CardTitle";
 
-export function CardDescription({
-  children,
-  className = "",
-  ...props
-}: React.HTMLAttributes<HTMLParagraphElement>) {
-  return (
-    <p
-      className={`text-sm text-slate-500 dark:text-slate-400 ${className}`}
-      {...props}
-    >
-      {children}
-    </p>
-  );
-}
+const CardDescription = React.forwardRef<
+  HTMLParagraphElement,
+  React.HTMLAttributes<HTMLParagraphElement>
+>(({ className, ...props }, ref) => (
+  <p
+    ref={ref}
+    className={cn("text-sm text-slate-500 dark:text-slate-400", className)}
+    {...props}
+  />
+));
+CardDescription.displayName = "CardDescription";
 
-export function CardContent({
-  children,
-  className = "",
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div className={`space-y-4 ${className}`} {...props}>
-      {children}
-    </div>
-  );
-}
+const CardContent = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("space-y-4", className)} {...props} />
+));
+CardContent.displayName = "CardContent";
 
-export function CardFooter({
-  children,
-  className = "",
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) {
-  return (
-    <div
-      className={`mt-6 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-800/80 ${className}`}
-      {...props}
-    >
-      {children}
-    </div>
-  );
-}
+const CardFooter = React.forwardRef<
+  HTMLDivElement,
+  React.HTMLAttributes<HTMLDivElement>
+>(({ className, ...props }, ref) => (
+  <div
+    ref={ref}
+    className={cn(
+      "mt-6 flex items-center justify-between border-t border-slate-100 pt-4 dark:border-slate-800/80",
+      className,
+    )}
+    {...props}
+  />
+));
+CardFooter.displayName = "CardFooter";
+
+export {
+  Card,
+  CardHeader,
+  CardFooter,
+  CardTitle,
+  CardDescription,
+  CardContent,
+};
